@@ -1,4 +1,12 @@
-﻿using System;
+﻿/*
+ * Họ và tên: Nguyễn Đức La
+ * Mssv: 2123110087
+ * ngày tạo: 14/05/2026
+ * version: 1.0
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
