@@ -1,0 +1,62 @@
+﻿@model CMS.Data.Entities.Order
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white d-flex justify-content-between">
+            <h4 class="mb-0">CHI TIẾT ĐƠN HÀNG #@Model.Id</h4>
+            <span class="badge bg-warning text-dark">
+                @(Model.Status == 0 ? "Chờ duyệt" : Model.Status == 1 ? "Đang giao" : "Đã xong")
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Thông tin khách hàng</h5>
+                    <p><strong>Họ tên:</strong> @Model.Customer?.FullName</p>
+                    <p><strong>Email:</strong> @Model.Customer?.Email</p>
+                    <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h5>Ghi chú</h5>
+                    <p class="text-muted italic">"@Model.Notes"</p>
+                </div>
+            </div>
+
+            <h5>Danh sách sản phẩm đã mua</h5>
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th class="text-center">Số lượng</th>
+                        <th class="text-end">Đơn giá</th>
+                        <th class="text-end">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var detail in Model.OrderDetails)
+                    {
+                        <tr>
+                            <td>@detail.Product?.Name</td>
+                            <td class="text-center">@detail.Quantity</td>
+                            <td class="text-end">@string.Format("{0:N0}", detail.UnitPrice) đ</td>
+                            <td class="text-end fw-bold">
+                                @string.Format("{0:N0}", detail.Quantity * detail.UnitPrice) đ
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold fs-5">TỔNG CỘNG:</td>
+                        <td class="text-end fw-bold fs-5 text-danger">
+                            @string.Format("{0:N0}", Model.OrderDetails.Sum(x => x.Quantity * x.UnitPrice)) đ
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="card-footer">
+            <a href="/Order" class="btn btn-secondary">Quay lại danh sách</a>
+        </div>
+    </div>
+</div>

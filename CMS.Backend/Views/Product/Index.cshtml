@@ -1,0 +1,48 @@
+﻿@model IEnumerable<CMS.Data.Entities.Product>
+
+<div class="container mt-4">
+    <h2 class="text-primary fw-bold mb-4 border-bottom pb-2">DANH SÁCH SẢN PHẨM</h2>
+
+    <table class="table table-hover align-middle shadow-sm border">
+        <thead class="table-primary text-center">
+            <tr>
+                <th>Ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Danh mục</th>
+                <th>Giá bán</th>
+                <th>Kho</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="text-center">
+                        <img src="@item.ImageUrl" alt="product" class="rounded" style="width: 60px; height: 60px; object-fit: cover;" />
+                    </td>
+                    <td>
+                        <div class="fw-bold">@item.Name</div>
+                        <small class="text-muted">@item.Description</small>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary">@(item.CategoryProduct?.Name ?? "N/A")</span>
+                    </td>
+                    <td class="text-danger fw-bold text-end">
+                        @string.Format("{0:N0} VNĐ", item.Price)
+                    </td>
+                    <td class="text-center">
+                        @if (item.StockQuantity > 0) {
+                            <span class="text-success">@item.StockQuantity</span>
+                        } else {
+                            <span class="text-danger">Hết hàng</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-info text-white">Chi tiết</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

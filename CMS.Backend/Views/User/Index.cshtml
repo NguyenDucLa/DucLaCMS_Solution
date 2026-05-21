@@ -2,13 +2,13 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-dark">QUẢN LÝ THÀNH VIÊN</h2>
+        <h2 class="fw-bold">QUẢN LÝ THÀNH VIÊN</h2>
         <button class="btn btn-success btn-sm">+ Thêm thành viên mới</button>
     </div>
 
-    <table class="table table-hover shadow-sm border">
+    <table class="table table-hover border shadow-sm">
         <thead class="table-light">
-            <tr>
+            <tr class="text-center">
                 <th>ID</th>
                 <th>Tên Đăng Nhập</th>
                 <th>Họ Và Tên</th>
@@ -19,18 +19,22 @@
         <tbody>
             @foreach (var user in Model)
             {
-                <tr>
+                <tr class="align-middle text-center">
                     <td>@user.Id</td>
                     <td><strong>@user.Username</strong></td>
                     <td>@user.FullName</td>
                     <td>
-                        @if (user.Role == "Administrator")
+                        @if (user.Role == "Admin" || user.Role == "Administrator")
                         {
-                            <span class="badge bg-danger">@user.Role</span>
+                            <span class="badge bg-danger">Admin</span>
+                        }
+                        else if (user.Role == "Editor")
+                        {
+                            <span class="badge bg-info text-dark">Editor</span>
                         }
                         else
                         {
-                            <span class="badge bg-info text-dark">@user.Role</span>
+                            <span class="badge bg-secondary">@user.Role</span>
                         }
                     </td>
                     <td>

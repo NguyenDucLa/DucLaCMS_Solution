@@ -1,24 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CMS.Data;
-using CMS.Data.Entities;
 using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
-    public class UserController : Controller
+    public class CustomerController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public UserController(ApplicationDbContext context)
+        public CustomerController(ApplicationDbContext context)
         {
             _context = context;
         }
 
         public IActionResult Index()
         {
-            // Lấy danh sách người dùng từ Database
-            var users = _context.Users.ToList();
-            return View(users);
+            // Lấy toàn bộ danh sách khách hàng từ Database
+            var customers = _context.Customers.ToList();
+            return View(customers);
         }
     }
 }

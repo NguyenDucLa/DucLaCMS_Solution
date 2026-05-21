@@ -1,0 +1,41 @@
+﻿@model IEnumerable<CMS.Data.Entities.Customer>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-dark fw-bold text-uppercase">Quản lý khách hàng</h2>
+        <span class="badge bg-primary">Tổng số: @Model.Count()</span>
+    </div>
+
+    <table class="table table-hover table-bordered shadow-sm">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>ID</th>
+                <th>Họ và tên</th>
+                <th>Email</th>
+                <th>Số điện thoại</th>
+                <th>Địa chỉ</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="align-middle">
+                    <td class="text-center">@item.Id</td>
+                    <td class="fw-bold">@item.FullName</td>
+                    <td>
+                        <a href="mailto:@item.Email" class="text-decoration-none">
+                            <i class="bi bi-envelope"></i> @item.Email
+                        </a>
+                    </td>
+                    <td class="text-center">@item.Phone</td>
+                    <td>@item.Address</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary">Xem đơn</button>
+                        <button class="btn btn-sm btn-outline-danger">Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

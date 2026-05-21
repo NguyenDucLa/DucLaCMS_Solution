@@ -22,4 +22,12 @@
     <ProjectReference Include="..\CMS.Data\CMS.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\CategoryProduct\" />
+    <Folder Include="Views\Customer\" />
+    <Folder Include="Views\OrderDetail\" />
+    <Folder Include="Views\Order\" />
+    <Folder Include="Views\Product\" />
+  </ItemGroup>
+
 </Project>
