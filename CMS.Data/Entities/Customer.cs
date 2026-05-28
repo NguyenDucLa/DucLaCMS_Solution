@@ -23,18 +23,18 @@ namespace CMS.Data.Entities
         public int Id { get; set; }
 
         [Required]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         public string? Phone { get; set; }
 
         public string? Address { get; set; }
 
         [Required]
-        public string Password { get; set; } // Lưu mật khẩu thô theo yêu cầu tối giản
+        public string Password { get; set; } = string.Empty; // Lưu mật khẩu thô theo yêu cầu tối giản
 
         public virtual ICollection<Order>? Orders { get; set; }
     }
