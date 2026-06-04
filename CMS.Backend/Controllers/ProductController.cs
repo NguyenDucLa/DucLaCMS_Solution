@@ -2,9 +2,11 @@
 using CMS.Data;
 using Microsoft.EntityFrameworkCore; // Cần dòng này để dùng .Include
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CMS.Backend.Controllers
 {
+    [Authorize]
     public class ProductController : Controller
     {
         private readonly ApplicationDbContext _context;

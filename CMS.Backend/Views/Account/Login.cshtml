@@ -1,0 +1,60 @@
+@{
+    Layout = null; // Trang đăng nhập độc lập, không dùng Layout chung
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập hệ thống - DucLaCMS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .login-card { margin-top: 100px; border-radius: 15px; overflow: hidden; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card shadow-lg border-0 login-card">
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <h4 class="mb-0 text-uppercase fw-bold">Quản trị CMS</h4>
+                        <small>Vui lòng đăng nhập để tiếp tục</small>
+                    </div>
+                    <div class="card-body p-4">
+                        <form asp-action="Login" method="post">
+                            <!-- Ô NHẬP ẨN ĐỂ GIỮ RETURN URL -->
+                            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tên đăng nhập</label>
+                                <input type="text" name="username" class="form-control form-control-lg" placeholder="Nhập username..." required autofocus />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Mật khẩu</label>
+                                <input type="password" name="password" class="form-control form-control-lg" placeholder="••••••••" required />
+                            </div>
+
+                            @if (ViewBag.Error != null)
+                            {
+                                <div class="alert alert-danger py-2 mb-3">
+                                    <i class="bi bi-exclamation-triangle"></i> @ViewBag.Error
+                                </div>
+                            }
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg fw-bold">ĐĂNG NHẬP</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-white text-center py-3">
+                        <small class="text-muted">&copy; 2026 - Nguyễn Đức La</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

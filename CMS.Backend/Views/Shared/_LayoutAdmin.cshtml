@@ -48,7 +48,18 @@
                     <a asp-controller="OrderDetail" asp-action="Index">
                         <i class="bi bi-grid"></i> Đơn hàng chi tiết                    
                     </a>
-
+                </div>
+                <div class="mt-auto p-3 border-top border-secondary">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="text-white mb-2">
+                            Chào, <strong>@User.FindFirst("FullName")?.Value</strong>
+                        </div>
+                        <div class="text-white mb-2">
+                            <small>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small>
+                        </div>
+                        <a class="btn btn-outline-danger btn-sm w-100" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+                    }
                 </div>
             </nav>
 
