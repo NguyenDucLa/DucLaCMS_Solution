@@ -14,13 +14,15 @@ builder.Services.AddControllersWithViews(); //Lệnh này vừa nhận diện c�
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(); // -- Kích hoạt bộ sinh tài liệu API Swagger
 
-// Cấu hình CORS cho phép ReactJS kết nối
-builder.Services.AddCors(options => {
-    options.AddPolicy("AllowAll", policy => {
-        // Cho phép mọi nguồn cấp (Origin), mọi phương thức gọi (GET, POST...), và mọi thông tin đi kèm (Header)
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+// ---- CẤU HÌNH CORS CHO PHÉP REACTJS KẾT NỐI ----
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000") // Cho phép ReactJS ở port 3000 gọi tới
+              .AllowAnyHeader()                     // Cho phép mọi loại Header (Content-Type, Authorization...)
+              .AllowAnyMethod()                     // Cho phép mọi phương thức HTTP (GET, POST, PUT, DELETE)
+              .AllowCredentials();                  // Hỗ trợ truyền Cookie/Session nếu cần sau này
     });
 });
 
@@ -56,7 +58,7 @@ app.UseSwaggerUI(c =>
 });
 
 // [VỊ TRÍ ĐẶT CORS]: Phải nằm ngay giữa UseRouting và app.UseAuthentication(); UseAuthorization();
-app.UseCors("AllowAll");
+app.UseCors("AllowReactApp");
 
 app.UseAuthentication(); // BƯỚC A: Xác nhận "Anh là ai?" (Kiểm tra thẻ bài)
 app.UseAuthorization();  // BƯỚC B: Xác nhận "Anh được làm gì?" (Kiểm tra quyền)
