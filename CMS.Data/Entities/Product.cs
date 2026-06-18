@@ -27,7 +27,7 @@ namespace CMS.Data.Entities
 
         public string? Description { get; set; }
 
-        [Range(0, double.MaxValue)]
+        [Range(0, double.MaxValue, ErrorMessage = "Giá bán phải là số không âm")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
