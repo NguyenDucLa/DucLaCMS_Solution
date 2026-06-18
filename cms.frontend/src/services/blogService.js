@@ -8,6 +8,23 @@ const blogService = {
     getAllPosts: () => {
         const url = '/Posts';
         return axiosClient.get(url);
+    },
+
+    /**
+     * Hàm lấy chi tiết 1 bài viết theo ID (Phục vụ trang xem chi tiết sau này)
+     */
+    getPostById: (id) => {
+        const url = `/Posts/${id}`;
+        return axiosClient.get(url);
+    },
+
+    /**
+     * BÀI TẬP TỰ LÀM: Hàm lấy danh sách Chuyên mục tin tức (Category)
+     * Endpoint kết nối tới CategoriesController trong ASP.NET Core
+     */
+    getBlogCategories: () => {
+        const url = '/Categories';
+        return axiosClient.get(url);
     }
 };
 
