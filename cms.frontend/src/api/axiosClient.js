@@ -6,6 +6,7 @@ const axiosClient = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true, // Gửi kèm Cookie để duy trì phiên đăng nhập
     timeout: 10000, // Thời gian tối đa chờ phản hồi từ server (10 giây)
 });
 

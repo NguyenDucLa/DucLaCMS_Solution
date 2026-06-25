@@ -25,6 +25,15 @@ const blogService = {
     getBlogCategories: () => {
         const url = '/Categories';
         return axiosClient.get(url);
+    },
+
+    /**
+     * Hàm lấy bài viết theo danh mục
+     * Endpoint: api/Posts/category/{categoryId}
+     */
+    getPostsByCategory: (categoryId) => {
+        const url = `/Posts/category/${categoryId}`;
+        return axiosClient.get(url);
     }
 };
 

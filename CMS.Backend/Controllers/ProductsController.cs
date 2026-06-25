@@ -24,11 +24,10 @@ namespace CMS.Backend.Controllers
 
         // 1. Chỉ định phương thức GET (Dùng để kéo dữ liệu từ cơ sở dữ liệu)
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
         {
-            // Lấy toàn bộ dữ liệu từ bảng Products số nhiều trong SQL Server
-            var products = await _context.Products
-                .OrderByDescending(p => p.Id) // Sắp xếp sản phẩm mới nhất lên đầu
+            var query = _context.Products
+                .OrderByDescending(p => p.Id)
                 .Select(p => new
                 {
                     p.Id,
@@ -37,19 +36,31 @@ namespace CMS.Backend.Controllers
                     p.ImageUrl,
                     p.StockQuantity,
                     CategoryProductName = p.CategoryProduct.Name
-                })
+                });
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            // Trả về kết quả cho Frontend kèm mã trạng thái HTTP 200 OK (Thành công)
-            return Ok(products);
+            return Ok(new
+            {
+                items = products,
+                totalItems,
+                totalPages,
+                currentPage = page,
+                pageSize
+            });
         }
 
         // 2. Định nghĩa đường dẫn chứa tham số động: api/products/categoryproduct/{categoryProductId}
         [HttpGet("categoryproduct/{categoryProductId}")]
-        public async Task<IActionResult> GetByCategoryProduct(int categoryProductId)
+        public async Task<IActionResult> GetByCategoryProduct(int categoryProductId, [FromQuery] int page = 1, [FromQuery] int pageSize = 12)
         {
-            // Lọc các sản phẩm có CategoryProductId trùng với ID truyền vào từ thanh URL
-            var products = await _context.Products
+            var query = _context.Products
                 .Where(p => p.CategoryProductId == categoryProductId)
                 .Select(p => new
                 {
@@ -58,10 +69,24 @@ namespace CMS.Backend.Controllers
                     p.Price,
                     p.ImageUrl,
                     p.StockQuantity
-                })
+                });
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return Ok(products);
+            return Ok(new
+            {
+                items = products,
+                totalItems,
+                totalPages,
+                currentPage = page,
+                pageSize
+            });
         }
 
         // 3. Định nghĩa đường dẫn nhận ID trực tiếp: api/products/{id}

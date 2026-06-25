@@ -1,7 +1,46 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
 
 function Header() {
+    const navigate = useNavigate();
+    const [cartCount, setCartCount] = useState(0);
+    const [user, setUser] = useState(null);
+    const [checkingAuth, setCheckingAuth] = useState(true);
+
+    useEffect(() => {
+        const updateCart = () => {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            setCartCount(total);
+        };
+        updateCart();
+        window.addEventListener('storage', updateCart);
+        window.addEventListener('cartUpdated', updateCart);
+        return () => {
+            window.removeEventListener('storage', updateCart);
+            window.removeEventListener('cartUpdated', updateCart);
+        };
+    }, []);
+
+    // Kiểm tra trạng thái đăng nhập khi component mount
+    useEffect(() => {
+        authService.getMe()
+            .then(data => setUser(data))
+            .catch(() => setUser(null))
+            .finally(() => setCheckingAuth(false));
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            await authService.logout();
+            setUser(null);
+            navigate('/');
+        } catch {
+            setUser(null);
+        }
+    };
+
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
             <div className="container">
@@ -39,13 +78,41 @@ function Header() {
                         </form>
                         <Link to="/cart" className="btn btn-outline-light btn-sm position-relative me-2">
                             <i className="fa-solid fa-cart-shopping"></i>
-                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.6rem' }}>
-                                0
-                            </span>
+                            {cartCount > 0 && (
+                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.6rem' }}>
+                                    {cartCount}
+                                </span>
+                            )}
                         </Link>
-                        <Link to="/checkout" className="btn btn-warning btn-sm fw-bold">
-                            <i className="fa-solid fa-right-to-bracket me-1"></i>Đăng nhập
-                        </Link>
+                        {checkingAuth ? (
+                            <span className="text-light small">...</span>
+                        ) : user ? (
+                            <div className="dropdown">
+                                <button className="btn btn-warning btn-sm fw-bold dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i className="fa-solid fa-user me-1"></i>{user.fullName || user.username}
+                                </button>
+                                <ul className="dropdown-menu dropdown-menu-end">
+                                    <li><span className="dropdown-item-text small text-muted">
+                                        <i className="fa-solid fa-user-tag me-1"></i>{user.role}
+                                    </span></li>
+                                    <li><hr className="dropdown-divider" /></li>
+                                    <li>
+                                        <button className="dropdown-item text-danger" onClick={handleLogout}>
+                                            <i className="fa-solid fa-right-from-bracket me-1"></i>Đăng xuất
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        ) : (
+                            <div className="d-flex gap-1">
+                                <Link to="/register" className="btn btn-outline-light btn-sm">
+                                    <i className="fa-solid fa-user-plus me-1"></i>Đăng ký
+                                </Link>
+                                <Link to="/login" className="btn btn-warning btn-sm fw-bold">
+                                    <i className="fa-solid fa-right-to-bracket me-1"></i>Đăng nhập
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

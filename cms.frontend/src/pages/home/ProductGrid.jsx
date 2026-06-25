@@ -11,8 +11,8 @@ const ProductGrid = () => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const data = await productService.getAllProducts();
-                setProducts(data);
+                const data = await productService.getAllProducts(1, 50);
+                setProducts(data?.items || []);
             } catch (error) {
                 console.error("Lỗi khi tải danh sách sản phẩm:", error);
                 setProducts([]);

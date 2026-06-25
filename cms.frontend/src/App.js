@@ -10,6 +10,8 @@ import Blog from './pages/blog/index';
 import BlogDetail from './pages/blog-detail/index';
 import Cart from './pages/cart/index';
 import Checkout from './pages/checkout/index';
+import Login from './pages/login/index';
+import Register from './pages/register/index';
 
 import './App.css';
 
@@ -41,6 +43,12 @@ function App() {
 
                         {/* Cấu hình Trang Thanh toán */}
                         <Route path="/checkout" element={<Checkout />} />
+
+                        {/* Cấu hình Trang Đăng nhập */}
+                        <Route path="/login" element={<Login />} />
+
+                        {/* Cấu hình Trang Đăng ký */}
+                        <Route path="/register" element={<Register />} />
 
                         {/* XỬ LÝ KỊCH BẢN TRANG LỖI 404 */}
                         <Route path="*" element={
