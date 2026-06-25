@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '../utils/imageHelper';
 
 // Ảnh mặc định từ Unsplash (quần áo thời trang) khi sản phẩm không có ảnh
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=500&q=80';
@@ -8,7 +9,7 @@ const ProductCard = ({ product }) => {
     const [imgError, setImgError] = useState(false);
 
     // Xác định URL ảnh: ưu tiên imageUrl từ API, fallback về ảnh mặc định
-    const imgSrc = product.imageUrl && !imgError ? product.imageUrl : DEFAULT_IMAGE;
+    const imgSrc = !imgError ? getImageUrl(product.imageUrl, DEFAULT_IMAGE) : DEFAULT_IMAGE;
 
     return (
         <div className="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import blogService from '../../services/blogService';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1492725764893-90b379c2b6e7?auto=format&fit=crop&w=800&q=80';
 
@@ -46,7 +47,7 @@ function BlogDetail() {
         );
     }
 
-    const imgSrc = post.imageUrl && !imgError ? post.imageUrl : DEFAULT_IMAGE;
+    const imgSrc = !imgError ? getImageUrl(post.imageUrl, DEFAULT_IMAGE) : DEFAULT_IMAGE;
 
     return (
         <div>

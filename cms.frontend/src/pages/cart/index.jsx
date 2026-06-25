@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=100&q=80';
 
@@ -64,7 +65,7 @@ function Cart() {
                                     {cart.map((item, index) => (
                                         <div key={item.productId} className={`d-flex align-items-center gap-3 ${index > 0 ? 'border-top pt-3 mt-3' : ''}`}>
                                             <img
-                                                src={item.imageUrl || DEFAULT_IMAGE}
+                                                src={getImageUrl(item.imageUrl, DEFAULT_IMAGE)}
                                                 alt={item.name}
                                                 style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }}
                                                 onError={(e) => e.target.src = DEFAULT_IMAGE}

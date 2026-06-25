@@ -23,21 +23,29 @@ function Header() {
         };
     }, []);
 
-    // Kiểm tra trạng thái đăng nhập khi component mount
-    useEffect(() => {
+    // Kiểm tra trạng thái đăng nhập khi component mount & khi có sự kiện authChanged
+    const checkAuth = () => {
         authService.getMe()
             .then(data => setUser(data))
             .catch(() => setUser(null))
             .finally(() => setCheckingAuth(false));
+    };
+
+    useEffect(() => {
+        checkAuth();
+        window.addEventListener('authChanged', checkAuth);
+        return () => window.removeEventListener('authChanged', checkAuth);
     }, []);
 
     const handleLogout = async () => {
         try {
             await authService.logout();
             setUser(null);
+            window.dispatchEvent(new Event('authChanged'));
             navigate('/');
         } catch {
             setUser(null);
+            window.dispatchEvent(new Event('authChanged'));
         }
     };
 
@@ -50,7 +58,7 @@ function Header() {
                 </Link>
 
                 {/* Nút toggle cho mobile */}
-                <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar">
                     <span className="navbar-toggler-icon"></span>
                 </button>
 
@@ -87,21 +95,31 @@ function Header() {
                         {checkingAuth ? (
                             <span className="text-light small">...</span>
                         ) : user ? (
-                            <div className="dropdown">
-                                <button className="btn btn-warning btn-sm fw-bold dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i className="fa-solid fa-user me-1"></i>{user.fullName || user.username}
+                            <div className="d-flex align-items-center gap-2">
+                                <div className="dropdown">
+                                    <button className="btn btn-warning btn-sm fw-bold dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i className="fa-solid fa-user me-1"></i>{user.fullName || user.username}
+                                    </button>
+                                    <ul className="dropdown-menu dropdown-menu-end">
+                                        <li><span className="dropdown-item-text small text-muted">
+                                            <i className="fa-solid fa-user-tag me-1"></i>{user.role}
+                                        </span></li>
+                                        <li><hr className="dropdown-divider" /></li>
+                                        <li>
+                                            <button className="dropdown-item" onClick={() => window.location.href = 'http://localhost:5000'}>
+                                                <i className="fa-solid fa-speedometer me-1"></i>Quản trị
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button className="dropdown-item text-danger" onClick={handleLogout}>
+                                                <i className="fa-solid fa-right-from-bracket me-1"></i>Đăng xuất
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <button className="btn btn-outline-danger btn-sm" onClick={handleLogout} title="Đăng xuất">
+                                    <i className="fa-solid fa-right-from-bracket"></i>
                                 </button>
-                                <ul className="dropdown-menu dropdown-menu-end">
-                                    <li><span className="dropdown-item-text small text-muted">
-                                        <i className="fa-solid fa-user-tag me-1"></i>{user.role}
-                                    </span></li>
-                                    <li><hr className="dropdown-divider" /></li>
-                                    <li>
-                                        <button className="dropdown-item text-danger" onClick={handleLogout}>
-                                            <i className="fa-solid fa-right-from-bracket me-1"></i>Đăng xuất
-                                        </button>
-                                    </li>
-                                </ul>
                             </div>
                         ) : (
                             <div className="d-flex gap-1">

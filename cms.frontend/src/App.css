@@ -2,6 +2,18 @@
   text-align: center;
 }
 
+/* Hiệu ứng fadeInUp cho slider banner */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

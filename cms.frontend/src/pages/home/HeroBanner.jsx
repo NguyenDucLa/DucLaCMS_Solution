@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import productService from '../../services/productService';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=600&q=80';
 
@@ -20,7 +21,7 @@ function HeroBanner() {
         if (totalSlides < 2) return;
         const timer = setInterval(() => {
             setCurrentIndex(prev => (prev + 1) % totalSlides);
-        }, 5000);
+        }, 2000);
         return () => clearInterval(timer);
     }, [totalSlides]);
 
@@ -86,42 +87,62 @@ function HeroBanner() {
                         )}
                     </div>
 
-                    {/* Cột phải: Slider sản phẩm */}
+                    {/* Cột phải: Slider sản phẩm với hiệu ứng chuyển động */}
                     <div className="col-lg-5 d-none d-lg-block text-center">
                         <div className="position-relative" style={{ perspective: '1000px' }}>
                             {/* Ảnh sản phẩm dạng card nổi */}
                             <div className="position-relative d-inline-block"
                                 style={{
                                     transform: 'rotateY(-5deg) rotateX(5deg)',
-                                    transition: 'transform 0.6s ease',
                                 }}>
-                                <img
-                                    src={current?.imageUrl || DEFAULT_IMAGE}
-                                    alt={current?.name || 'Sản phẩm'}
-                                    className="rounded-3 shadow-lg"
-                                    style={{
-                                        width: '340px',
-                                        height: '340px',
-                                        objectFit: 'cover',
-                                        border: '4px solid rgba(255,255,255,0.15)',
-                                    }}
-                                    onError={(e) => { e.target.src = DEFAULT_IMAGE; }}
-                                />
-
-                                {/* Giá sản phẩm */}
-                                {current && (
-                                    <div className="position-absolute bottom-0 start-0 end-0 p-3"
+                                <div className="position-relative" style={{ width: '340px', height: '340px' }}>
+                                    {/* Ảnh nền cũ - fade out */}
+                                    {products.length > 1 && (
+                                        <img
+                                            key={'prev-' + currentIndex}
+                                            src={getImageUrl(products[(currentIndex - 1 + products.length) % products.length]?.imageUrl, DEFAULT_IMAGE)}
+                                            alt=""
+                                            className="rounded-3 position-absolute"
+                                            style={{
+                                                width: '100%', height: '100%', objectFit: 'cover',
+                                                border: '4px solid rgba(255,255,255,0.15)',
+                                                opacity: 0,
+                                                transition: 'opacity 0.8s ease',
+                                            }}
+                                        />
+                                    )}
+                                    {/* Ảnh hiện tại - fade in */}
+                                    <img
+                                        key={currentIndex}
+                                        src={getImageUrl(current?.imageUrl, DEFAULT_IMAGE)}
+                                        alt={current?.name || 'Sản phẩm'}
+                                        className="rounded-3 shadow-lg position-absolute"
                                         style={{
-                                            background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                                            borderRadius: '0 0 10px 10px',
-                                        }}>
-                                        <span className="text-white fw-bold fs-5">{current.name}</span>
-                                        <br />
-                                        <span className="text-warning fw-bold">
-                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(current.price)}
-                                        </span>
-                                    </div>
-                                )}
+                                            width: '100%', height: '100%', objectFit: 'cover',
+                                            border: '4px solid rgba(255,255,255,0.15)',
+                                            opacity: 1,
+                                            transition: 'opacity 0.8s ease',
+                                        }}
+                                        onError={(e) => { e.target.src = DEFAULT_IMAGE; }}
+                                    />
+
+                                    {/* Giá sản phẩm */}
+                                    {current && (
+                                        <div className="position-absolute bottom-0 start-0 end-0 p-3"
+                                            style={{
+                                                background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                                                borderRadius: '0 0 10px 10px',
+                                                zIndex: 2,
+                                                animation: 'fadeInUp 0.5s ease',
+                                            }}>
+                                            <span className="text-white fw-bold fs-5">{current.name}</span>
+                                            <br />
+                                            <span className="text-warning fw-bold">
+                                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(current.price)}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Badge giảm giá */}

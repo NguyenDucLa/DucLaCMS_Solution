@@ -28,7 +28,8 @@ function Login() {
                 username: form.username.trim(),
                 password: form.password
             });
-            // Đăng nhập thành công → về trang chủ (cookie đã được lưu)
+            // Đăng nhập thành công → thông báo cho Header + về trang chủ
+            window.dispatchEvent(new Event('authChanged'));
             navigate('/');
         } catch (err) {
             const msg = err?.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';

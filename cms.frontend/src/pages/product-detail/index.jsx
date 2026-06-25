@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import productService from '../../services/productService';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=500&q=80';
 
@@ -67,7 +68,7 @@ function ProductDetail() {
         );
     }
 
-    const imgSrc = product.imageUrl || DEFAULT_IMAGE;
+    const imgSrc = getImageUrl(product.imageUrl, DEFAULT_IMAGE);
 
     return (
         <div>
