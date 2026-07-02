@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 // Khởi tạo một thực thể axios với cấu hình base chung
+// API URL được cấu hình qua file .env: REACT_APP_API_URL
 const axiosClient = axios.create({
-    baseURL: 'http://localhost:5000/api', // Port Backend thực tế (HTTP)
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -17,8 +18,10 @@ axiosClient.interceptors.response.use(
         return response.data;
     },
     (error) => {
-        // Xử lý lỗi tập trung tại đây (Ví dụ: Server sập, lỗi 404, lỗi 500)
-        console.error('Lỗi kết nối API:', error.message);
+        // Chỉ log lỗi thật (5xx, network error), bỏ qua lỗi xác thực 401 (bình thường khi chưa login)
+        if (error.response && error.response.status >= 500) {
+            console.error('Lỗi kết nối API:', error.message);
+        }
         return Promise.reject(error);
     }
 );

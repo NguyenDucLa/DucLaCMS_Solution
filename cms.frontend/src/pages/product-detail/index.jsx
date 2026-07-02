@@ -24,7 +24,17 @@ function ProductDetail() {
 
     const handleAddToCart = () => {
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+        // Kiểm tra tồn kho: tính tổng số lượng đã có trong giỏ + số lượng muốn thêm
         const existing = cart.find(item => item.productId === product.id);
+        const currentInCart = existing ? existing.quantity : 0;
+        const totalRequested = currentInCart + quantity;
+
+        if (totalRequested > product.stockQuantity) {
+            alert(`Số lượng sản phẩm trong kho không đủ!\nHiện có: ${product.stockQuantity} sản phẩm\nBạn đã thêm: ${currentInCart} sản phẩm\nKhông thể thêm ${quantity} sản phẩm nữa.`);
+            return;
+        }
+
         if (existing) {
             existing.quantity += quantity;
         } else {

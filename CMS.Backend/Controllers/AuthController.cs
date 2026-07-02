@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using CMS.Data;
@@ -29,17 +28,18 @@ namespace CMS.Backend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO input)
         {
-            if (input == null || string.IsNullOrWhiteSpace(input.Username) || string.IsNullOrWhiteSpace(input.Password))
+            if (input == null || string.IsNullOrWhiteSpace(input.Email) || string.IsNullOrWhiteSpace(input.Password))
             {
-                return BadRequest(new { message = "Vui lòng nhập tên đăng nhập và mật khẩu." });
+                return BadRequest(new { message = "Vui lòng nhập email và mật khẩu." });
             }
 
+            // Tìm User theo email
             var user = _context.Users
-                .FirstOrDefault(u => u.Username == input.Username && u.PasswordHash == input.Password);
+                .FirstOrDefault(u => u.Email == input.Email);
 
-            if (user == null)
+            if (user == null || !VerifyPassword(input.Password, user))
             {
-                return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng!" });
+                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng!" });
             }
 
             var claims = new List<Claim>
@@ -50,9 +50,9 @@ namespace CMS.Backend.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsIdentity = new ClaimsIdentity(claims, "FrontendAuth");
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+            await HttpContext.SignInAsync("FrontendAuth",
                 new ClaimsPrincipal(claimsIdentity));
 
             return Ok(new
@@ -89,8 +89,8 @@ namespace CMS.Backend.Controllers
             if (string.IsNullOrWhiteSpace(input.Username))
                 return BadRequest(new { message = "Tên đăng nhập không được để trống." });
 
-            if (string.IsNullOrWhiteSpace(input.Password) || input.Password.Length < 3)
-                return BadRequest(new { message = "Mật khẩu phải có ít nhất 3 ký tự." });
+            if (string.IsNullOrWhiteSpace(input.Password) || input.Password.Length < 6)
+                return BadRequest(new { message = "Mật khẩu phải có ít nhất 6 ký tự." });
 
             // Kiểm tra username đã tồn tại chưa
             if (_context.Users.Any(u => u.Username == input.Username))
@@ -100,10 +100,11 @@ namespace CMS.Backend.Controllers
             if (_context.Users.Any(u => u.Email == input.Email))
                 return Conflict(new { message = "Email đã được sử dụng." });
 
+            // Mã hóa mật khẩu bằng BCrypt trước khi lưu
             var user = new User
             {
                 Username = input.Username.Trim(),
-                PasswordHash = input.Password,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(input.Password),
                 FullName = input.FullName.Trim(),
                 Email = input.Email.Trim(),
                 Role = "Editor"
@@ -119,22 +120,28 @@ namespace CMS.Backend.Controllers
         }
 
         /// <summary>
-        /// GET: /api/auth/me — Lấy thông tin người dùng hiện tại (kiểm tra session)
+        /// GET: /api/auth/me — Lấy thông tin người dùng hiện tại (kiểm tra FrontendAuth cookie)
         /// </summary>
         [HttpGet("me")]
-        public IActionResult GetCurrentUser()
+        public async Task<IActionResult> GetCurrentUser()
         {
-            if (!User.Identity.IsAuthenticated)
+            var result = await HttpContext.AuthenticateAsync("FrontendAuth");
+            if (!result.Succeeded || result.Principal == null)
             {
-                return Unauthorized(new { message = "Chưa đăng nhập." });
+                return Ok(new { isAuthenticated = false });
             }
 
+            var principal = result.Principal;
+            var userId = int.Parse(principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var user = _context.Users.Find(userId);
             return Ok(new
             {
-                id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                username = User.Identity.Name,
-                fullName = User.FindFirst("FullName")?.Value,
-                role = User.FindFirst(ClaimTypes.Role)?.Value
+                isAuthenticated = true,
+                id = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                username = principal.Identity?.Name,
+                fullName = principal.FindFirst("FullName")?.Value,
+                email = user?.Email ?? "",
+                role = principal.FindFirst(ClaimTypes.Role)?.Value
             });
         }
 
@@ -144,14 +151,107 @@ namespace CMS.Backend.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync("FrontendAuth");
             return Ok(new { message = "Đăng xuất thành công." });
+        }
+
+        /// <summary>
+        /// PUT: /api/auth/profile — Cập nhật thông tin User (họ tên)
+        /// </summary>
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileUserDTO input)
+        {
+            var result = await HttpContext.AuthenticateAsync("FrontendAuth");
+            if (!result.Succeeded || result.Principal == null)
+                return Unauthorized(new { message = "Chưa đăng nhập." });
+
+            var userId = int.Parse(result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var user = _context.Users.Find(userId);
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy người dùng." });
+
+            if (!string.IsNullOrWhiteSpace(input.FullName))
+                user.FullName = input.FullName.Trim();
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Cập nhật thông tin thành công!",
+                user = new
+                {
+                    user.Id,
+                    user.Username,
+                    user.FullName,
+                    user.Email,
+                    user.Role
+                }
+            });
+        }
+
+        /// <summary>
+        /// PUT: /api/auth/change-password — Đổi mật khẩu User
+        /// </summary>
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordUserDTO input)
+        {
+            var result = await HttpContext.AuthenticateAsync("FrontendAuth");
+            if (!result.Succeeded || result.Principal == null)
+                return Unauthorized(new { message = "Chưa đăng nhập." });
+
+            var userId = int.Parse(result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var user = _context.Users.Find(userId);
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy người dùng." });
+
+            if (string.IsNullOrWhiteSpace(input.OldPassword))
+                return BadRequest(new { message = "Vui lòng nhập mật khẩu cũ." });
+
+            if (string.IsNullOrWhiteSpace(input.NewPassword) || input.NewPassword.Length < 6)
+                return BadRequest(new { message = "Mật khẩu mới phải có ít nhất 6 ký tự." });
+
+            // Kiểm tra mật khẩu cũ
+            bool validOldPassword;
+            if (user.PasswordHash.StartsWith("$2"))
+                validOldPassword = BCrypt.Net.BCrypt.Verify(input.OldPassword, user.PasswordHash);
+            else
+                validOldPassword = user.PasswordHash == input.OldPassword;
+
+            if (!validOldPassword)
+                return Unauthorized(new { message = "Mật khẩu cũ không đúng." });
+
+            // Hash và lưu mật khẩu mới
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(input.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Đổi mật khẩu thành công!" });
+        }
+
+        /// <summary>
+        /// Xác thực mật khẩu hỗ trợ cả BCrypt (mới) và Plain Text (cũ)
+        /// Nếu là mật khẩu cũ (plain text) -> tự động hash lại bằng BCrypt
+        /// </summary>
+        private bool VerifyPassword(string password, User user)
+        {
+            if (user.PasswordHash.StartsWith("$2"))
+            {
+                return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            }
+
+            if (user.PasswordHash == password)
+            {
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
+                _context.SaveChanges();
+                return true;
+            }
+
+            return false;
         }
     }
 
     public class LoginDTO
     {
-        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
 
@@ -161,5 +261,16 @@ namespace CMS.Backend.Controllers
         public string Password { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+    }
+
+    public class ChangePasswordUserDTO
+    {
+        public string OldPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+    }
+
+    public class UpdateProfileUserDTO
+    {
+        public string? FullName { get; set; }
     }
 }

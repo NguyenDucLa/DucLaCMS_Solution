@@ -68,7 +68,8 @@ namespace CMS.Backend.Controllers
                     p.Name,
                     p.Price,
                     p.ImageUrl,
-                    p.StockQuantity
+                    p.StockQuantity,
+                    CategoryProductName = p.CategoryProduct.Name
                 });
 
             var totalItems = await query.CountAsync();
@@ -87,6 +88,136 @@ namespace CMS.Backend.Controllers
                 currentPage = page,
                 pageSize
             });
+        }
+
+        // API: Tìm kiếm sản phẩm theo từ khóa
+        // GET /api/Products/search?keyword=áo&page=1&pageSize=12
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string keyword = "", [FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return await GetAll(page, pageSize);
+            }
+
+            var query = _context.Products
+                .Where(p => p.Name.Contains(keyword) || (p.Description != null && p.Description.Contains(keyword)))
+                .OrderByDescending(p => p.Id)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Price,
+                    p.ImageUrl,
+                    p.StockQuantity,
+                    CategoryProductName = p.CategoryProduct.Name
+                });
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                items = products,
+                totalItems,
+                totalPages,
+                currentPage = page,
+                pageSize,
+                keyword
+            });
+        }
+
+        // API: Lọc sản phẩm theo khoảng giá
+        // GET /api/Products/filter?minPrice=100000&maxPrice=5000000&page=1&pageSize=12
+        [HttpGet("filter")]
+        public async Task<IActionResult> FilterByPrice([FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice,
+            [FromQuery] int? categoryId, [FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+        {
+            var query = _context.Products.AsQueryable();
+
+            if (categoryId.HasValue)
+                query = query.Where(p => p.CategoryProductId == categoryId.Value);
+
+            if (minPrice.HasValue)
+                query = query.Where(p => p.Price >= minPrice.Value);
+
+            if (maxPrice.HasValue)
+                query = query.Where(p => p.Price <= maxPrice.Value);
+
+            query = query.OrderByDescending(p => p.Id);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var products = await query
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Price,
+                    p.ImageUrl,
+                    p.StockQuantity,
+                    CategoryProductName = p.CategoryProduct.Name
+                })
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                items = products,
+                totalItems,
+                totalPages,
+                currentPage = page,
+                pageSize
+            });
+        }
+
+        // API: Lấy 3 sản phẩm mới nhất (cho trang chủ)
+        [HttpGet("latest")]
+        public async Task<IActionResult> GetLatest()
+        {
+            var products = await _context.Products
+                .OrderByDescending(p => p.Id)
+                .Take(3)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Price,
+                    p.ImageUrl,
+                    p.StockQuantity
+                })
+                .ToListAsync();
+
+            return Ok(products);
+        }
+
+        // API: Lấy 3 sản phẩm bán chạy nhất (dựa trên số lượng trong OrderDetails)
+        [HttpGet("bestselling")]
+        public async Task<IActionResult> GetBestSelling()
+        {
+            var products = await _context.OrderDetails
+                .GroupBy(od => new { od.ProductId, od.Product.Name, od.Product.Price, od.Product.ImageUrl, od.Product.StockQuantity })
+                .Select(g => new
+                {
+                    Id = g.Key.ProductId,
+                    g.Key.Name,
+                    g.Key.Price,
+                    g.Key.ImageUrl,
+                    g.Key.StockQuantity,
+                    TotalSold = g.Sum(od => od.Quantity)
+                })
+                .OrderByDescending(p => p.TotalSold)
+                .Take(3)
+                .ToListAsync();
+
+            return Ok(products);
         }
 
         // 3. Định nghĩa đường dẫn nhận ID trực tiếp: api/products/{id}

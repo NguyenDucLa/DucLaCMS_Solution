@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CMS.Backend.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class PostController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -129,6 +129,45 @@ namespace CMS.Backend.Controllers
             // Chuẩn bị lại danh sách danh mục để người dùng có thể đổi chuyên mục
             ViewBag.CategoryList = new SelectList(_context.Categories, "Id", "Name", post.CategoryId);
             return View(post);
+        }
+
+        /// <summary>
+        /// POST: /Post/UploadImage — Endpoint cho CKEditor upload ảnh trực tiếp vào nội dung
+        /// </summary>
+        [HttpPost("UploadImage")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UploadImage(IFormFile upload)
+        {
+            if (upload == null || upload.Length == 0)
+            {
+                return Json(new { uploaded = false, error = new { message = "Vui lòng chọn file ảnh." } });
+            }
+
+            try
+            {
+                // Định nghĩa đường dẫn lưu file: wwwroot/uploads
+                string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                // Tạo tên file duy nhất
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(upload.FileName);
+                string filePath = Path.Combine(folder, fileName);
+
+                // Lưu file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await upload.CopyToAsync(stream);
+                }
+
+                // Trả về URL đầy đủ cho CKEditor
+                string url = $"/uploads/{fileName}";
+
+                return Json(new { uploaded = true, url = url });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { uploaded = false, error = new { message = ex.Message } });
+            }
         }
 
         // POST: Thực hiện cập nhật

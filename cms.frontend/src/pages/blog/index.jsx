@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import PostCard from '../../components/PostCard';
@@ -7,16 +7,11 @@ import blogService from '../../services/blogService';
 import categoryService from '../../services/categoryService';
 
 function Blog() {
-    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [activeCategory, setActiveCategory] = useState(null);
     const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const catId = searchParams.get('category');
-        setActiveCategory(catId ? Number(catId) : null);
-    }, [searchParams]);
 
     useEffect(() => {
         categoryService.getAllCategories()
@@ -26,7 +21,7 @@ function Blog() {
 
     useEffect(() => {
         setLoading(true);
-        const fetch = activeCategory
+        const fetch = activeCategory !== null && activeCategory !== undefined
             ? blogService.getPostsByCategory(activeCategory)
             : blogService.getAllPosts();
         fetch
@@ -34,6 +29,15 @@ function Blog() {
             .catch(() => setPosts([]))
             .finally(() => setLoading(false));
     }, [activeCategory]);
+
+    const handleCategoryClick = (catId) => {
+        setActiveCategory(catId);
+        if (catId !== null && catId !== undefined) {
+            navigate(`/blog?category=${catId}`, { replace: true });
+        } else {
+            navigate('/blog', { replace: true });
+        }
+    };
 
     return (
         <div>
@@ -43,11 +47,11 @@ function Blog() {
                     <i className="fa-regular fa-newspaper me-2"></i>Tin tức & Xu hướng
                 </h2>
 
-                {/* Bộ lọc danh mục bài viết */}
+                {/* Bộ lọc danh mục dạng pills */}
                 <div className="d-flex flex-wrap gap-2 mb-4">
                     <button
                         className={`btn btn-sm rounded-pill px-3 ${activeCategory === null ? 'btn-dark' : 'btn-outline-secondary'}`}
-                        onClick={() => { window.location.href = '/blog'; }}
+                        onClick={() => handleCategoryClick(null)}
                     >
                         <i className="fa-solid fa-th-list me-1"></i>Tất cả
                     </button>
@@ -55,7 +59,7 @@ function Blog() {
                         <button
                             key={cat.id}
                             className={`btn btn-sm rounded-pill px-3 ${activeCategory === cat.id ? 'btn-dark' : 'btn-outline-secondary'}`}
-                            onClick={() => { window.location.href = `/blog?category=${cat.id}`; }}
+                            onClick={() => handleCategoryClick(cat.id)}
                         >
                             <i className="fa-solid fa-tag me-1"></i>{cat.name}
                         </button>

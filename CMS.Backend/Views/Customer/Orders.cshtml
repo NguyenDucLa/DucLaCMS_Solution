@@ -1,0 +1,68 @@
+@model IEnumerable<CMS.Data.Entities.Order>
+@{
+    Layout = "_LayoutAdmin";
+    var customerName = ViewBag.CustomerName ?? "Khách hàng";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-dark fw-bold text-uppercase">Đơn hàng của @customerName</h2>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fa-solid fa-circle-info me-2"></i>Khách hàng này chưa có đơn hàng nào.
+        </div>
+    }
+    else
+    {
+        <table class="table table-hover table-bordered shadow-sm">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Ngày đặt</th>
+                    <th>Trạng thái</th>
+                    <th>Ghi chú</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="align-middle">
+                        <td class="text-center fw-bold">#@item.Id</td>
+                        <td class="text-center">@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-center">
+                            @switch (item.Status)
+                            {
+                                case 0:
+                                    <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                    break;
+                                case 1:
+                                    <span class="badge bg-primary">Đang giao</span>
+                                    break;
+                                case 2:
+                                    <span class="badge bg-success">Đã xong</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary">Khác</span>
+                                    break;
+                            }
+                        </td>
+                        <td>@item.Notes</td>
+                        <td class="text-center">
+                            <a asp-controller="Order" asp-action="Details" asp-route-id="@item.Id"
+                               class="btn btn-sm btn-outline-info">
+                                <i class="fa-solid fa-eye"></i> Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

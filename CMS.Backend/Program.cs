@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using CMS.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using CMS.Backend.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Add services to the container.
 builder.Services.AddControllersWithViews(); //Lệnh này vừa nhận diện các API mới, vừa giữ quyền biên dịch các View (.cshtml) của Web MVC cũ.
+
+// Đăng ký EmailService
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 // Đăng ký dịch vụ lõi giúp hệ thống tự động bóc tách thông tin Endpoint phục vụ Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -26,12 +31,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 1. Khai báo dịch vụ xác thực Cookie
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+// 1. Khai báo dịch vụ xác thực Cookie - TÁCH LÀM 2 SCHEME RIÊNG
+//    - BackendAuth: dành cho Admin MVC (AccountController, UserController...)
+//    - FrontendAuth: dành cho API từ React (AuthController...)
+builder.Services.AddAuthentication("BackendAuth")
+    .AddCookie("BackendAuth", options =>
     {
-        options.LoginPath = "/Account/Login"; // Đường dẫn nếu chưa đăng nhập
-        options.AccessDeniedPath = "/Account/AccessDenied"; // Đường dẫn nếu vào trang không được phép
+        options.Cookie.Name = ".AspNetCore.Cookies.Backend";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+    })
+    .AddCookie("FrontendAuth", options =>
+    {
+        options.Cookie.Name = ".AspNetCore.Cookies.Frontend";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
     });
 
 var app = builder.Build();

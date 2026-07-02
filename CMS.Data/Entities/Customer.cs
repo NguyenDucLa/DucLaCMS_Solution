@@ -34,7 +34,7 @@ namespace CMS.Data.Entities
         public string? Address { get; set; }
 
         [Required]
-        public string Password { get; set; } = string.Empty; // Lưu mật khẩu thô theo yêu cầu tối giản
+        public string PasswordHash { get; set; } = string.Empty;
 
         public virtual ICollection<Order>? Orders { get; set; }
     }

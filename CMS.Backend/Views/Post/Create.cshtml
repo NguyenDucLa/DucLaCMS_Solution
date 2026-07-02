@@ -70,9 +70,22 @@
     <script>
         // Kích hoạt trình soạn thảo cho thẻ textarea có id là 'Content'
         ClassicEditor
-            .create(document.querySelector('#Content'))
+            .create(document.querySelector('#Content'), {
+                ckfinder: {
+                    uploadUrl: '/Post/UploadImage'
+                },
+                image: {
+                    toolbar: ['imageTextAlternative', 'imageStyle:full', 'imageStyle:side'],
+                    styles: ['full', 'side']
+                }
+            })
+            .then(editor => {
+                // Lưu instance editor để truy cập sau này nếu cần
+                window.editor = editor;
+                console.log('CKEditor đã sẵn sàng với tính năng upload ảnh!');
+            })
             .catch(error => {
-                console.error(error);
+                console.error('Lỗi khởi tạo CKEditor:', error);
             });
     </script>
 }

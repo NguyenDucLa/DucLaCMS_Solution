@@ -27,6 +27,24 @@ const productService = {
     getProductById: (id) => {
         const url = `/Products/${id}`;
         return axiosClient.get(url);
+    },
+
+    /**
+     * Hàm lấy 3 sản phẩm mới nhất
+     * Endpoint: GET /Products/latest
+     */
+    getLatestProducts: () => {
+        const url = '/Products/latest';
+        return axiosClient.get(url);
+    },
+
+    /**
+     * Hàm lấy 3 sản phẩm bán chạy nhất
+     * Endpoint: GET /Products/bestselling
+     */
+    getBestSellingProducts: () => {
+        const url = '/Products/bestselling';
+        return axiosClient.get(url);
     }
 };
 

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using CMS.Data;
 using CMS.Data.Entities;
+using CMS.Backend.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,10 +13,12 @@ namespace CMS.Backend.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public OrdersController(ApplicationDbContext context)
+        public OrdersController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -44,7 +47,7 @@ namespace CMS.Backend.Controllers
                         Email = input.Customer.Email,
                         Phone = input.Customer.Phone,
                         Address = input.Customer.Address,
-                        Password = "temp" // Mật khẩu tạm cho khách vãng lai
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("temp") // Mật khẩu tạm cho khách vãng lai (đã mã hóa)
                     };
                     _context.Customers.Add(customer);
                     await _context.SaveChangesAsync();
@@ -95,10 +98,41 @@ namespace CMS.Backend.Controllers
                 }
                 await _context.SaveChangesAsync();
 
+                // Bước 4: Gửi email xác nhận đơn hàng cho khách
+                var emailSent = false;
+                try
+                {
+                    var orderItems = input.Items.Select(item => new OrderItemInfo
+                    {
+                        ProductName = item.ProductName ?? $"Sản phẩm #{item.ProductId}",
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice
+                    }).ToList();
+
+                    var totalAmount = orderItems.Sum(i => i.SubTotal);
+
+                    await _emailService.SendOrderConfirmationAsync(
+                        customer.Email,
+                        customer.FullName,
+                        newOrder.Id,
+                        orderItems,
+                        totalAmount
+                    );
+                    emailSent = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Lỗi gửi email đơn hàng #{newOrder.Id}: {ex.Message}");
+                    // Không block - đơn hàng vẫn được tạo thành công dù email lỗi
+                }
+
                 return StatusCode(201, new
                 {
-                    message = "Đặt hàng thành công!",
-                    orderId = newOrder.Id
+                    message = emailSent
+                        ? "Đặt hàng thành công! Email xác nhận đã được gửi."
+                        : "Đặt hàng thành công! (Không thể gửi email xác nhận, vui lòng kiểm tra cấu hình email trong appsettings.json)",
+                    orderId = newOrder.Id,
+                    emailSent
                 });
             }
             catch (Exception ex)
@@ -123,6 +157,7 @@ namespace CMS.Backend.Controllers
         public int ProductId { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
+        public string? ProductName { get; set; }
     }
 
     // DTO: Toàn bộ dữ liệu checkout từ Frontend

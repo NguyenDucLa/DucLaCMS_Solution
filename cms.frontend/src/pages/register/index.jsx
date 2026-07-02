@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import authService from '../../services/authService';
 
 function Register() {
-    const navigate = useNavigate();
     const [form, setForm] = useState({
         fullName: '',
         email: '',
@@ -44,8 +43,8 @@ function Register() {
             setError('Vui lòng nhập mật khẩu.');
             return;
         }
-        if (form.password.length < 3) {
-            setError('Mật khẩu phải có ít nhất 3 ký tự.');
+        if (form.password.length < 6) {
+            setError('Mật khẩu phải có ít nhất 6 ký tự.');
             return;
         }
         if (form.password !== form.confirmPassword) {
@@ -85,10 +84,11 @@ function Register() {
                                     <div className="text-center py-4">
                                         <i className="fa-solid fa-circle-check text-success" style={{ fontSize: '4rem' }}></i>
                                         <h5 className="fw-bold mt-3 text-success">Đăng ký thành công!</h5>
-                                        <p className="text-muted">Vui lòng đăng nhập để tiếp tục.</p>
-                                        <Link to="/login" className="btn btn-warning fw-bold rounded-pill px-4 mt-2">
+                                        <p className="text-muted">Vui lòng đăng nhập để quản lý nội dung.</p>
+                                        <a href="/login"
+                                            className="btn btn-warning fw-bold rounded-pill px-4 mt-2">
                                             <i className="fa-solid fa-right-to-bracket me-2"></i>Đăng nhập ngay
-                                        </Link>
+                                        </a>
                                     </div>
                                 ) : (
                                     <>
@@ -140,7 +140,7 @@ function Register() {
                                                     className="form-control"
                                                     value={form.password}
                                                     onChange={handleChange}
-                                                    placeholder="Ít nhất 3 ký tự"
+                                                    placeholder="Ít nhất 6 ký tự"
                                                 />
                                             </div>
                                             <div className="mb-3">

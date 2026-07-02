@@ -70,7 +70,8 @@ function Checkout() {
                 items: cart.map(item => ({
                     productId: item.productId,
                     quantity: item.quantity,
-                    unitPrice: item.price
+                    unitPrice: item.price,
+                    productName: item.name || ''
                 })),
                 notes: form.notes.trim() || null
             };

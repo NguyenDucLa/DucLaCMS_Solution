@@ -69,10 +69,10 @@ namespace CMS.Backend.Controllers
             
             if (existingUser == null) return NotFound();
 
-            // 2. Xử lý mật khẩu: Nếu nhập mới thì lấy cái mới, nếu trống thì lấy cái cũ
+            // 2. Xử lý mật khẩu: Nếu nhập mới thì hash bằng BCrypt, nếu trống thì giữ mật khẩu cũ
             if (!string.IsNullOrEmpty(NewPassword))
             {
-                model.PasswordHash = NewPassword; // Sau này sẽ mã hóa tại đây
+                model.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword);
             }
             else
             {

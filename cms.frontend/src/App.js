@@ -12,6 +12,9 @@ import Cart from './pages/cart/index';
 import Checkout from './pages/checkout/index';
 import Login from './pages/login/index';
 import Register from './pages/register/index';
+import SearchResults from './pages/search/index';
+import ForgotPassword from './pages/forgot-password/index';
+import Profile from './pages/profile/index';
 
 import './App.css';
 
@@ -49,6 +52,15 @@ function App() {
 
                         {/* Cấu hình Trang Đăng ký */}
                         <Route path="/register" element={<Register />} />
+
+                        {/* Cấu hình Trang Tìm kiếm */}
+                        <Route path="/search" element={<SearchResults />} />
+
+                        {/* Cấu hình Trang Quên mật khẩu */}
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+                        {/* Cấu hình Trang Hồ sơ cá nhân */}
+                        <Route path="/profile" element={<Profile />} />
 
                         {/* XỬ LÝ KỊCH BẢN TRANG LỖI 404 */}
                         <Route path="*" element={

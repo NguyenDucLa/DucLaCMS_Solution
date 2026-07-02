@@ -23,30 +23,33 @@ function Header() {
         };
     }, []);
 
-    // Kiểm tra trạng thái đăng nhập khi component mount & khi có sự kiện authChanged
+    // Kiểm tra trạng thái đăng nhập User (admin/editor)
     const checkAuth = () => {
         authService.getMe()
-            .then(data => setUser(data))
-            .catch(() => setUser(null))
+            .then(data => {
+                setUser(data.isAuthenticated ? data : null);
+            })
+            .catch(() => {
+                setUser(null);
+            })
             .finally(() => setCheckingAuth(false));
     };
 
     useEffect(() => {
         checkAuth();
         window.addEventListener('authChanged', checkAuth);
-        return () => window.removeEventListener('authChanged', checkAuth);
+        return () => {
+            window.removeEventListener('authChanged', checkAuth);
+        };
     }, []);
 
     const handleLogout = async () => {
         try {
             await authService.logout();
-            setUser(null);
-            window.dispatchEvent(new Event('authChanged'));
-            navigate('/');
-        } catch {
-            setUser(null);
-            window.dispatchEvent(new Event('authChanged'));
-        }
+        } catch { /* ignore */ }
+        setUser(null);
+        window.dispatchEvent(new Event('authChanged'));
+        navigate('/');
     };
 
     return (
@@ -78,8 +81,16 @@ function Header() {
 
                     {/* Ô tìm kiếm + Giỏ hàng */}
                     <div className="d-flex align-items-center">
-                        <form className="d-none d-md-flex me-3" role="search">
-                            <input className="form-control form-control-sm me-2" type="search" placeholder="Tìm sản phẩm..." aria-label="Search" style={{ minWidth: '180px' }} />
+                        <form className="d-none d-md-flex me-3" role="search"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                const keyword = e.target.searchInput.value.trim();
+                                if (keyword) {
+                                    navigate(`/search?q=${encodeURIComponent(keyword)}`);
+                                }
+                            }}
+                        >
+                            <input name="searchInput" className="form-control form-control-sm me-2" type="search" placeholder="Tìm sản phẩm..." aria-label="Search" style={{ minWidth: '180px' }} />
                             <button className="btn btn-outline-light btn-sm" type="submit">
                                 <i className="fa-solid fa-search"></i>
                             </button>
@@ -95,31 +106,33 @@ function Header() {
                         {checkingAuth ? (
                             <span className="text-light small">...</span>
                         ) : user ? (
-                            <div className="d-flex align-items-center gap-2">
-                                <div className="dropdown">
-                                    <button className="btn btn-warning btn-sm fw-bold dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i className="fa-solid fa-user me-1"></i>{user.fullName || user.username}
-                                    </button>
-                                    <ul className="dropdown-menu dropdown-menu-end">
-                                        <li><span className="dropdown-item-text small text-muted">
-                                            <i className="fa-solid fa-user-tag me-1"></i>{user.role}
-                                        </span></li>
-                                        <li><hr className="dropdown-divider" /></li>
-                                        <li>
-                                            <button className="dropdown-item" onClick={() => window.location.href = 'http://localhost:5000'}>
-                                                <i className="fa-solid fa-speedometer me-1"></i>Quản trị
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button className="dropdown-item text-danger" onClick={handleLogout}>
-                                                <i className="fa-solid fa-right-from-bracket me-1"></i>Đăng xuất
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <button className="btn btn-outline-danger btn-sm" onClick={handleLogout} title="Đăng xuất">
-                                    <i className="fa-solid fa-right-from-bracket"></i>
+                            <div className="dropdown">
+                                <button className="btn btn-warning btn-sm fw-bold dropdown-toggle d-flex align-items-center gap-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i className="fa-solid fa-user"></i>
+                                    <span>{user.fullName || user.username}</span>
                                 </button>
+                                <ul className="dropdown-menu dropdown-menu-end shadow" style={{ minWidth: '200px' }}>
+                                    <li>
+                                        <span className="dropdown-item-text small text-muted d-flex align-items-center gap-2">
+                                            <i className="fa-solid fa-user-tag"></i>
+                                            <span>{user.role}</span>
+                                        </span>
+                                    </li>
+                                    <li><hr className="dropdown-divider" /></li>
+                                    <li>
+                                        <Link className="dropdown-item d-flex align-items-center gap-2" to="/profile">
+                                            <i className="fa-solid fa-user-gear"></i>
+                                            <span>Hồ sơ cá nhân</span>
+                                        </Link>
+                                    </li>
+                                    <li><hr className="dropdown-divider" /></li>
+                                    <li>
+                                        <button className="dropdown-item text-danger d-flex align-items-center gap-2" onClick={handleLogout}>
+                                            <i className="fa-solid fa-right-from-bracket"></i>
+                                            <span>Đăng xuất</span>
+                                        </button>
+                                    </li>
+                                </ul>
                             </div>
                         ) : (
                             <div className="d-flex gap-1">

@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import authService from '../../services/authService';
+import axiosClient from '../../api/axiosClient';
 
 function Login() {
     const navigate = useNavigate();
-    const [form, setForm] = useState({ username: '', password: '' });
+    const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -17,22 +17,21 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.username.trim() || !form.password.trim()) {
-            setError('Vui lòng nhập tên đăng nhập và mật khẩu.');
+        if (!form.email.trim() || !form.password.trim()) {
+            setError('Vui lòng nhập email và mật khẩu.');
             return;
         }
 
         setLoading(true);
         try {
-            const result = await authService.login({
-                username: form.username.trim(),
+            await axiosClient.post('/auth/login', {
+                email: form.email.trim(),
                 password: form.password
             });
-            // Đăng nhập thành công → thông báo cho Header + về trang chủ
             window.dispatchEvent(new Event('authChanged'));
             navigate('/');
         } catch (err) {
-            const msg = err?.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+            const msg = err?.response?.data?.message || 'Email hoặc mật khẩu không đúng!';
             setError(msg);
         } finally {
             setLoading(false);
@@ -48,7 +47,7 @@ function Login() {
                         <div className="card shadow-sm border-0">
                             <div className="card-body p-4">
                                 <h3 className="text-center fw-bold mb-1">Đăng nhập</h3>
-                                <p className="text-center text-muted mb-4">Đăng nhập để quản lý đơn hàng và bài viết</p>
+                                <p className="text-center text-muted mb-4">Đăng nhập để quản lý nội dung</p>
 
                                 {error && (
                                     <div className="alert alert-danger py-2" role="alert">
@@ -58,14 +57,14 @@ function Login() {
 
                                 <form onSubmit={handleSubmit}>
                                     <div className="mb-3">
-                                        <label className="form-label fw-semibold">Tên đăng nhập</label>
+                                        <label className="form-label fw-semibold">Email</label>
                                         <input
-                                            type="text"
-                                            name="username"
+                                            type="email"
+                                            name="email"
                                             className="form-control"
-                                            value={form.username}
+                                            value={form.email}
                                             onChange={handleChange}
-                                            placeholder="Nhập tên đăng nhập"
+                                            placeholder="example@email.com"
                                         />
                                     </div>
                                     <div className="mb-3">
@@ -101,7 +100,7 @@ function Login() {
                             </div>
                         </div>
                     </div>
-    </div>
+                </div>
             </div>
             <Footer />
         </div>

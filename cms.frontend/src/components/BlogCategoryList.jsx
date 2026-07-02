@@ -1,59 +1,79 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import blogService from '../services/blogService';
 
 const BlogCategoryList = () => {
-    // Kho lưu trữ danh sách chuyên mục bài viết lấy từ SQL Server
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [blogCategories, setBlogCategories] = useState([]);
-    // Trạng thái tối ưu trải nghiệm người dùng trong lúc đợi API phản hồi
     const [loading, setLoading] = useState(true);
+    const activeCategory = searchParams.get('category');
 
     useEffect(() => {
         const fetchBlogCategories = async () => {
             try {
                 setLoading(true);
-                // Gọi sang lớp Service chứa trục Axios tập trung
                 const data = await blogService.getBlogCategories();
-                setBlogCategories(data); // Đẩy dữ liệu JSON nhận được vào State
+                setBlogCategories(data);
             } catch (error) {
-                console.error("Lỗi hệ thống khi gọi API chuyên mục tin tức:", error);
+                console.error("Lỗi khi gọi API chuyên mục tin tức:", error);
             } finally {
-                setLoading(false); // Đóng trạng thái Loading
+                setLoading(false);
             }
         };
-
         fetchBlogCategories();
-    }, []); // Mảng rỗng đảm bảo không xảy ra vòng lặp render vô hạn làm treo trình duyệt
+    }, []);
+
+    const handleFilter = (catId) => {
+        if (catId) {
+            navigate(`/blog?category=${catId}`);
+        } else {
+            navigate('/blog');
+        }
+    };
 
     if (loading) {
         return (
             <div className="text-center my-3 text-muted small">
-                <div className="spinner-border spinner-border-sm text-info mr-2" role="status"></div>
-                Đang nạp các chuyên mục bài viết...
+                <div className="spinner-border spinner-border-sm text-info" role="status"></div>
+                Đang nạp chuyên mục...
             </div>
         );
     }
 
     return (
-        <div className="card shadow-sm p-3 mt-4 bg-white rounded">
-            <h5 className="card-title text-uppercase font-weight-bold text-secondary">
-                <i className="fa-solid fa-tags mr-2 text-info"></i> Chủ đề bài viết
-            </h5>
-
-            <div className="list-group list-group-flush mt-2">
-                {blogCategories.length === 0 ? (
-                    <p className="text-muted small pl-2">Chưa có chủ đề tin tức nào.</p>
-                ) : (
-                    blogCategories.map((cate) => (
-                        <a
-                            key={cate.id}
-                            href={`/blog/category/${cate.id}`}
-                            className="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-1 text-dark text-decoration-none small"
-                        >
-                            <span><i className="fa-regular fa-hashtag mr-2 text-muted"></i>{cate.name}</span>
-                            <span className="badge badge-light border text-muted">Read</span>
-                        </a>
-                    ))
-                )}
+        <div className="card shadow-sm border-0 rounded-lg">
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
+                <h5 className="card-title text-uppercase fw-bold text-dark d-flex align-items-center mb-0" style={{ letterSpacing: '0.5px', fontSize: '1.1rem' }}>
+                    <i className="fa-solid fa-tags text-info me-2"></i> Chủ đề bài viết
+                </h5>
+            </div>
+            <div className="card-body p-0">
+                <div className="list-group list-group-flush">
+                    <button
+                        type="button"
+                        className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center px-4 py-3 ${!activeCategory ? 'active' : ''}`}
+                        onClick={() => handleFilter(null)}
+                    >
+                        <span className="fw-bold"><i className="fa-solid fa-th-list me-2"></i>Tất cả</span>
+                        <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem', opacity: 0.5 }}></i>
+                    </button>
+                    {blogCategories.length === 0 ? (
+                        <div className="p-4 text-center text-muted">Chưa có chủ đề nào.</div>
+                    ) : (
+                        blogCategories.map((cate) => (
+                            <button
+                                key={cate.id}
+                                type="button"
+                                className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center px-4 py-3 ${activeCategory === String(cate.id) ? 'active' : ''}`}
+                                onClick={() => handleFilter(cate.id)}
+                            >
+                                <span><i className="fa-regular fa-hashtag me-2 text-muted"></i>{cate.name}</span>
+                                <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.8rem', opacity: 0.5 }}></i>
+                            </button>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );

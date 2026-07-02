@@ -4,7 +4,8 @@ import React from 'react';
 import Header from '../../components/Header';
 import HeroBanner from './HeroBanner';
 import CategoryMenu from './CategoryMenu';
-import ProductGrid from './ProductGrid';
+import LatestProducts from './LatestProducts';
+import BestSellingProducts from './BestSellingProducts';
 import LatestBlog from './LatestBlog';
 import Footer from '../../components/Footer';
 
@@ -20,13 +21,16 @@ function Home() {
             {/* TẦNG 3: Menu ngang hiển thị danh mục sản phẩm (Gọi API /api/CategoriesProducts) */}
             <CategoryMenu />
 
-            {/* TẦNG 4: Lưới hiển thị danh sách sản phẩm thời trang (Gọi API /api/Products) */}
-            <ProductGrid />
+            {/* KHU VỰC 4: 3 Sản phẩm mới nhất - Gọi API /api/Products/latest */}
+            <LatestProducts />
 
-            {/* TẦNG 5: Khối hiển thị các bài viết tin tức xu hướng mặc đẹp (Gọi API /api/Posts) */}
+            {/* KHU VỰC 5: 3 Sản phẩm bán chạy - Gọi API /api/Products/bestselling */}
+            <BestSellingProducts />
+
+            {/* TẦNG 6: Khối hiển thị các bài viết tin tức xu hướng mặc đẹp (Gọi API /api/Posts) */}
             <LatestBlog />
 
-            {/* TẦNG 6: Chân trang quản trị thông tin liên hệ, hotline và chính sách cửa hàng */}
+            {/* TẦNG 7: Chân trang quản trị thông tin liên hệ, hotline và chính sách cửa hàng */}
             <Footer />
         </div>
     );
