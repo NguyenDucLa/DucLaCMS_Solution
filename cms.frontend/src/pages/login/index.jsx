@@ -91,6 +91,12 @@ function Login() {
                                     </button>
                                 </form>
 
+                                <div className="text-center mt-2">
+                                    <Link to="/forgot-password" className="text-decoration-none small text-danger fw-semibold">
+                                        <i className="fa-solid fa-key me-1"></i>Quên mật khẩu?
+                                    </Link>
+                                </div>
+
                                 <div className="text-center mt-3">
                                     <span className="text-muted small">Chưa có tài khoản? </span>
                                     <Link to="/register" className="text-decoration-none small fw-semibold">

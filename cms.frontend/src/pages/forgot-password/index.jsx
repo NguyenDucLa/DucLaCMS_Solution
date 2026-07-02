@@ -24,7 +24,7 @@ function ForgotPassword() {
         setLoading(true);
         setError('');
         try {
-            await axiosClient.post('/customerregister/forgot-password', { email: email.trim() });
+            await axiosClient.post('/auth/forgot-password', { email: email.trim() });
             setSuccess(true);
         } catch (err) {
             setError(err?.response?.data?.message || 'Email không tồn tại trong hệ thống.');

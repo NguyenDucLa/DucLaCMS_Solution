@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using CMS.Data;
 using CMS.Data.Entities;
+using CMS.Backend.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,12 @@ namespace CMS.Backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public AuthController(ApplicationDbContext context)
+        public AuthController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -225,6 +228,51 @@ namespace CMS.Backend.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Đổi mật khẩu thành công!" });
+        }
+
+        /// <summary>
+        /// POST: /api/auth/forgot-password
+        /// Xử lý quên mật khẩu cho tài khoản Admin/Editor (bảng Users)
+        /// </summary>
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO input)
+        {
+            if (input == null || string.IsNullOrWhiteSpace(input.Email))
+                return BadRequest(new { message = "Vui lòng nhập email." });
+
+            var user = _context.Users
+                .FirstOrDefault(u => u.Email.ToLower() == input.Email.Trim().ToLower());
+
+            if (user == null)
+                return NotFound(new { message = "Email không tồn tại trong hệ thống." });
+
+            // Tạo mật khẩu ngẫu nhiên 8 ký tự
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            var newPassword = new string(Enumerable.Range(0, 8).Select(_ => chars[random.Next(chars.Length)]).ToArray());
+
+            // Hash mật khẩu mới
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            // Gửi email chứa mật khẩu mới
+            try
+            {
+                await _emailService.SendForgotPasswordEmailAsync(
+                    user.Email,
+                    user.FullName,
+                    newPassword
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi gửi email forgot password: {ex.Message}");
+            }
+
+            return Ok(new
+            {
+                message = "Mật khẩu mới đã được gửi qua email. Vui lòng kiểm tra hộp thư đến (hoặc thư mục Spam).",
+            });
         }
 
         /// <summary>

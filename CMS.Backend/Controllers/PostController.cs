@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CMS.Backend.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public class PostController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -102,7 +102,8 @@ namespace CMS.Backend.Controllers
             return RedirectToAction("Index");
         }
 
-        // DELETE: Xóa bài viết
+        // DELETE: Xóa bài viết (Chỉ Admin mới có quyền xóa)
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
             // 1. Tìm bài viết theo Id

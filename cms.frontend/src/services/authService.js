@@ -31,6 +31,14 @@ const authService = {
      */
     logout: () => {
         return axiosClient.post('/auth/logout');
+    },
+
+    /**
+     * Quên mật khẩu - gửi email đặt lại mật khẩu
+     * POST /api/auth/forgot-password
+     */
+    forgotPassword: (email) => {
+        return axiosClient.post('/auth/forgot-password', { email });
     }
 };
 
